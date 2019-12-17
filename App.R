@@ -22,7 +22,7 @@ library(reshape2)
 library(kableExtra)
 ##########################################
 yelp_businessfinal <- read.csv("yelp_businessfinal.csv")
-yelp_review <- read.csv("results.csv")
+yelp_review <- read.csv("review.csv")
 
 set.seed(1234)
 data(stop_words)
@@ -35,7 +35,6 @@ table1 <- yelp_businessfinal %>%
 
 yelp_review1 <-yelp_review %>%
     mutate(text=as.character(text)) %>%
-    select(business_id, name, city, text) %>%
     unnest_tokens(word, text) %>%
     anti_join(stop_words)
 
@@ -44,13 +43,13 @@ table2 <- yelp_review1 %>%
     mutate(word = reorder(word, n)) %>%
     slice(1:50)
 
-yelp_review2 <-yelp_review %>% 
+yelp_businessfinal2 <-yelp_businessfinal %>% 
     mutate(categories=as.character(categories)) %>% 
     select(business_id, name, city, categories) %>%
     unnest_tokens(word, categories) %>% 
     anti_join(stop_words)
 
-table3 <- yelp_review2 %>%
+table3 <- yelp_businessfinal2 %>%
     count(word, sort = TRUE) %>%
     mutate(word = reorder(word, n)) %>%
     slice(1:50)
