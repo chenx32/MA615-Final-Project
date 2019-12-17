@@ -10,18 +10,18 @@ output: html_document
 }
 </style>
 
-```{r,include = FALSE,warning=FALSE,message=FALSE}
-knitr::opts_chunk$set(echo = FALSE,fig.width=6.5, fig.height=6.5,fig.align = "center")
+```{r,include = FALSE}
+knitr::opts_chunk$set(warning=FALSE,message=FALSE,echo = FALSE,fig.width=6.5, fig.height=6.5,fig.align = "center")
 pacman::p_load(tidyverse,httr,ggmap,jsonlite,tidyr,dplyr,kableExtra,ggplot2,MASS,plotly,ggmap,car,psych,leaflet,htmltools,tidytext,wordcloud,wordcloud2,reshape2,kableExtra,devtools)
 ```
 
 ## Introduction
 
-The purpose of the MA615 final project is to get a touch of Yelp datasets, Yelp is a restaurant and store rating App which is highly used in the United States. My research question is to explore and analyze the top 50 common stores in the city of Las Vegas in the Yelp Data. Exploratory data analysis, mapping, text mining, and sentiment analysis were used in this project.
+The purpose of the MA615 final project is to get a touch of Yelp datasets. Yelp is a restaurant and store rating App which is highly used in the United States. My research goal for this project is to explore and analyze the top 50 common stores in the city of Las Vegas in the Yelp Data. Exploratory data analysis, mapping, text mining, and sentiment analysis were conducted in this project.
 
 ## Exploratory Data Analysis 
 
-The following bar plot shows the top 50 common stores in Las Vegas in the Yelp dataset. The most common store in Las Vegas is Starbucks with 145 stores, the followings are Subway (120 stores), McDonald’s (70 stores) and 7-Eleven (70 stores). I will do analsis both on all 50 stores and to every one of the stores.
+The following bar plot shows the top 50 common stores in Las Vegas in the Yelp dataset. The most common store in Las Vegas is Starbucks with 145 stores, the followings are Subway (120 stores), McDonald’s (70 stores) and 7-Eleven (70 stores). I will do analysis both on all 50 stores and every one of the stores.
 
 ```{r}
 #Data subsetting is already done in here to avoid big data read in 

@@ -1,0 +1,249 @@
+---
+title: "Yelp Data Analysis for MA615 Final Project"
+author: "Xinci Chen"
+date: "12/16/2019"
+output: ioslides_presentation
+---
+<style>
+.html-widget {
+    margin: auto;
+}
+</style>
+
+```{r,include = FALSE}
+knitr::opts_chunk$set(warning=FALSE,message=FALSE,echo = FALSE,out.width='70%',fig.align = "center")
+pacman::p_load(tidyverse,httr,ggmap,jsonlite,tidyr,dplyr,kableExtra,ggplot2,MASS,plotly,ggmap,car,psych,leaflet,htmltools,tidytext,wordcloud,wordcloud2,reshape2,kableExtra,devtools)
+```
+
+## Introduction
+
+The purpose of the MA615 final project is to get a touch of Yelp datasets. Yelp is a restaurant and store rating App which is highly used in the United States. My research goal for this project is to explore and analyze the top 50 common stores in the city of Las Vegas in the Yelp Data. Exploratory data analysis, mapping, text mining, and sentiment analysis were conducted in this project.
+
+## Exploratory Data Analysis 
+
+The following bar plot shows the top 50 common stores in Las Vegas in the Yelp dataset. The most common store in Las Vegas is Starbucks with 145 stores, the followings are Subway (120 stores), McDonald’s (70 stores) and 7-Eleven (70 stores). I will do analysis both on all 50 stores and every one of the stores.
+
+```{r}
+#Data subsetting is already done in here to avoid big data read in 
+
+yelp_businessfinal <- read.csv("~/Desktop/MA615/Final Project/yelp_businessfinal.csv")
+
+table1 <- yelp_businessfinal %>% 
+    group_by(name) %>%
+    summarise(no_rows = length(name)) %>% 
+    arrange(desc(no_rows)) %>% 
+    slice(1:50) 
+
+ggplot(table1) +
+  geom_bar(aes(x= reorder(name, no_rows), y=no_rows),stat = "identity",fill="steelblue") +
+  geom_text(aes(x=name, y=no_rows,label = no_rows),size=3,color="white",hjust=1.25)+
+  labs(x = "Top 50 Stores in Las Vegas",y="Frequency")+
+  coord_flip()+
+  theme_minimal()
+```
+
+## Mapping for Starbucks
+
+The following map shows where 145 Starbucks are located in Las Vegas. We can tell that a lot of them are located in Las Vegas Boulevard which is the center of Las Vegas. 
+
+The map of all 50 stores and each one of the stores will be shown as the interactive mapping in Shiny Application.
+
+```{r}
+yelp_businessmap <- yelp_businessfinal %>%
+  dplyr::filter(grepl('Starbucks', name))
+
+icons <- awesomeIcons(
+  icon = 'coffee',
+  iconColor = '#FFFFFF',
+  markerColor = "blue",
+  library = 'fa'
+)
+
+leaflet(data = yelp_businessmap) %>%
+   addTiles() %>%
+   addAwesomeMarkers(~yelp_businessmap$longitude, ~yelp_businessmap$latitude, label = ~htmlEscape(yelp_businessmap$name),icon = icons) #popup=yelp_business2$name
+```
+
+## Text Analysis on Customer Review 
+
+The following bar plot shows the top 50 common words customers use in their review to the stores in Las Vegas. Service, time, food, location, and customer, these words are the most used when people left a review for a store, which is also very reasonable in terms of my common sense.
+
+
+```{r}
+data(stop_words)
+#Data subsetting is already done in here to avoid big data read in 
+yelp_review <- read.csv("~/Desktop/MA615/Final Project/results.csv")
+
+#the customer review
+yelp_review1 <-yelp_review %>% 
+  mutate(text=as.character(text)) %>% 
+  select(business_id, name, city, text) %>%
+  unnest_tokens(word, text) %>% 
+  anti_join(stop_words)
+
+#eda
+table2 <- yelp_review1 %>%
+  count(word, sort = TRUE) %>%
+  mutate(word = reorder(word, n)) %>%
+  slice(1:50)
+
+ggplot(data=table2,aes(word, n)) +
+  geom_col(fill="steelblue") +
+  geom_text(aes(x=word, y=n,label = n),size=2,color="white",hjust=1.25)+
+  labs(x = "Top 50 Common Words in Customer Review",y="Frequency")+
+  coord_flip()+
+  theme_minimal()
+```
+
+## Text Analysis on Customer Review Continued
+
+The following Word Cloud shows another way to visualize the top 50 common words customers use in their reviews.
+
+```{r}
+wordcloud2(table2,size = 0.75,shape="circle", color='random-dark')
+```
+
+
+## Text Analysis on Customer Review for Starbucks
+
+The following Word Cloud shows the top 50 common words customers use in their review for Starbucks in Las Vegas. 
+The Word Cloud of the top 50 common words customers use in their review for all 50 stores and each one of the stores  will be shown as the interactive mapping in Shiny Application.
+
+
+```{r}
+wc2 <- yelp_review1 %>%
+  dplyr::filter(grepl('Starbucks', name)) %>% 
+  count(word, sort = TRUE) %>% 
+  slice(1:50)
+
+bp.cols<- c("light blue","cornflowerblue", "coral2", brewer.pal(8,"Dark2"))
+wordcloud(wc2$word, wc2$n,scale=c(5.5,0.5),random.order=FALSE,rot.per=0.40,use.r.layout=FALSE,random.color=TRUE,colors=bp.cols)
+#wordcloud2(wc2,size = 0.75,shape="circle", color='random-dark')
+```
+
+## Text Analysis on Categories Variable
+
+The Categories variable in the data is to categorize the store into different types. I did a text analysis on the Categories variable to see what types the top 50 common stores in Las Vegas are. The following bar plot shows the top 50 Category types in the Categories variable of stores in Las Vegas. It is not supersized to find out the top two are food and restaurants. Even though Yelp has expanded its service to more than just retreatants, but still, its main focus is restaurants.
+
+
+```{r}
+yelp_review2 <-yelp_review %>% 
+  mutate(categories=as.character(categories)) %>% 
+  select(business_id, name, city, categories) %>%
+  unnest_tokens(word, categories) %>% 
+  anti_join(stop_words)
+
+table3 <- yelp_review2 %>%
+  count(word, sort = TRUE) %>%
+  mutate(word = reorder(word, n)) %>%
+  slice(1:50)
+
+ggplot(data=table3,aes(word, n)) +
+  geom_col(fill="steelblue") +
+  geom_text(aes(x=word, y=n,label = n),size=2,color="white",hjust=1.25)+
+  labs(x = "Top 50 Category types",y="Frequency")+
+  coord_flip()+
+  theme_minimal()
+```
+
+## Text Analysis on Categories variable continued
+
+The following word cloud shows another way to visualize the top 50 Category types in the Categories variable of stores in Las Vegas.
+
+```{r}
+#wordcloud2(table3,size = 0.75,shape="circle", color='random-dark')
+wordcloud(table3$word, table3$n,scale=c(5.5,0.5),random.order=FALSE,rot.per=0.40,use.r.layout=FALSE,random.color=TRUE,colors=bp.cols)
+```
+
+## Sentiment Analysis
+I used Bing Liu and collaborators lexicons to do the Sentiment Analysis on customer reviews. The Bing lexicon categorizes words in a binary fashion into positive and negative categories. The following plot shows the positive and negative in the words of reviews to every 50 stores. The left side to 0 line is negative, the right side to 0 line is positive. It surprised me that for each store, the frequency of positive and negative words are similar.
+
+```{r}
+yelp_review1_sentiment <- yelp_review1 %>%
+  inner_join(get_sentiments("bing"))%>%
+  count(name, sentiment) 
+
+yelp_review1_sentiment2 <- yelp_review1_sentiment %>%
+  mutate(new_n=ifelse(sentiment == "negative",-n, n))
+
+ggplot(yelp_review1_sentiment2) +
+  geom_bar(aes(x=name, y=new_n,fill = (new_n > 0)),stat = "identity") +
+  geom_text(aes(x=name, y=new_n,label = new_n),size=2,color="black")+
+  coord_flip()+
+  scale_fill_brewer(palette="Paired")+
+  labs(x = "Stores in Las Vegas",y="Frequency of Negative and Postive Sentiment")+
+  theme_minimal()
+```
+
+## Sentiment Analysis Continued
+
+The following plot shows the net sentiment (positive-negative) in every 50 stores. We can tell that Capriotti's Sandwich Shop, Starbucks and The Coffee Bean & Tea Leaf have the most positive review words, where  McDonald’s, USPS, Pizza Hut have the most negative words in their reviews.
+
+```{r}
+yelp_review1_sentiment3 <- yelp_review1_sentiment %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+ggplot(yelp_review1_sentiment3, aes(x = reorder(name, sentiment), y=sentiment,fill = sentiment > 0)) +
+  geom_bar(stat = "identity")+
+  geom_text(aes(label = sentiment),size=2,color="black",hjust=1)+
+  coord_flip()+
+  theme_minimal()+
+  scale_fill_brewer(palette="Paired")+
+  labs(x = "Stores in Las Vegas",y="Frequency of Net Sentiment")
+```
+
+## Sentiment Analysis on Starbucks
+The following plot shows the top 10 common positive and negative words people use when they left a review in Starbucks. The same plot for each one of them will be shown as the interactive mapping in Shiny Application.
+
+```{r}
+yelp_review1_sentiment4 <- yelp_review1 %>%
+  dplyr::filter(grepl('Starbucks', name)) %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(word,sentiment,sort = TRUE) %>% 
+  group_by(sentiment) %>%
+  top_n(10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n))
+
+ggplot(data=yelp_review1_sentiment4, aes(word, n,fill = sentiment,width=0.5)) +
+  geom_bar(stat="identity")+
+  geom_text(aes(x=word, y=n,label = n),size=4,color="white",hjust=1.25)+
+  facet_wrap(~sentiment,scales = "free_y") +
+  coord_flip()+
+  theme_minimal()+
+  scale_fill_brewer(palette="Paired")+
+  labs(x = "Words",y="Frequency")+
+  theme(legend.position = "none")
+```
+
+## Comparison Cloud for Starbucks
+
+The following comparison word cloud shows the comparison of negative words and positive words people use to review Starbucks. 
+
+```{r}
+table4 <- yelp_review1 %>%
+  dplyr::filter(grepl('Starbucks', name)) %>% 
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment,name, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) 
+wc3 <- comparison.cloud(table4,colors =c("cornflowerblue","#1F78B4"),max.words = 100,title.size=2.5,match.colors=TRUE,title.bg.colors="white")
+```
+
+## Sentiment Ratio for Starbucks
+
+The following table shows the ratio of positive words and negative words to the total words for Starbucks.
+The ratio of postive and negative are not far different. 
+The same table for each one of them will be shown as the interactive mapping in Shiny Application.
+```{r}
+yelp_review1_sentiment5 <- yelp_review1 %>%
+  dplyr::filter(grepl('Starbucks', name)) %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(name,sentiment,sort = TRUE) %>% 
+  mutate(Ratio = n/sum(n)) %>% 
+  rename(Frequency=n,Sentiment=sentiment,Name=name)
+
+kable(yelp_review1_sentiment5) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),full_width = F)
+```
+
