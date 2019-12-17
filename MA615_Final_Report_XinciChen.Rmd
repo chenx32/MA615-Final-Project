@@ -26,7 +26,7 @@ The following bar plot shows the top 50 common stores in Las Vegas in the Yelp d
 ```{r}
 #Data subsetting is already done in here to avoid big data read in 
 
-yelp_businessfinal <- read.csv("~/Desktop/MA615/Final Project/yelp_businessfinal.csv")
+yelp_businessfinal <- read.csv("yelp_businessfinal.csv")
 
 table1 <- yelp_businessfinal %>% 
     group_by(name) %>%
@@ -71,12 +71,11 @@ The following bar plot shows the top 50 common words customers use in their revi
 ```{r}
 data(stop_words)
 #Data subsetting is already done in here to avoid big data read in 
-yelp_review <- read.csv("~/Desktop/MA615/Final Project/results.csv")
+yelp_review <- read.csv("review.csv")
 
 #the customer review
 yelp_review1 <-yelp_review %>% 
   mutate(text=as.character(text)) %>% 
-  select(business_id, name, city, text) %>%
   unnest_tokens(word, text) %>% 
   anti_join(stop_words)
 
@@ -122,13 +121,13 @@ wordcloud(wc2$word, wc2$n,scale=c(5.5,0.5),random.order=FALSE,rot.per=0.40,use.r
 The Categories variable in the data is to categorize the store into different types. I did a text analysis on the Categories variable to see what types the top 50 common stores in Las Vegas are. The following bar plot shows the top 50 Category types in the Categories variable of stores in Las Vegas. It is not supersized to find out the top two are food and restaurants. Even though Yelp has expanded its service to more than just retreatants, but still, its main focus is restaurants.
 
 ```{r}
-yelp_review2 <-yelp_review %>% 
+yelp_businessfinal2 <-yelp_businessfinal %>% 
   mutate(categories=as.character(categories)) %>% 
   select(business_id, name, city, categories) %>%
   unnest_tokens(word, categories) %>% 
   anti_join(stop_words)
 
-table3 <- yelp_review2 %>%
+table3 <- yelp_businessfinal2 %>%
   count(word, sort = TRUE) %>%
   mutate(word = reorder(word, n)) %>%
   slice(1:50)
