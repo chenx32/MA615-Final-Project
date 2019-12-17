@@ -1,3 +1,3 @@
 # MA615-Final-Project
-## Two csv files will be add in later!!!
-## for shiny go to this link http://127.0.0.1:6566/ I could not publish due to some reason!!
+## When you try to run my files in your personal computer, remeber to change the reading path or working directory to read the data.
+## Due to techinical reasons, I could not publish my Shiny App. Feel free to run my Shiny App (App.R). It is working in my laptop. Let me know if you have any questions running it!
